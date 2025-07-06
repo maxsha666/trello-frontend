@@ -8,6 +8,7 @@ const CardItem = ({ id, title }) => {
 
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: 1, // Make sure dragged item is on top
   } : undefined;
 
   return (

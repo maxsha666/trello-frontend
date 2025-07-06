@@ -37,20 +37,12 @@ const AuthState = (props) => {
     }
   };
 
-  // Register User --- VERSIÓN CORREGIDA Y DEFINITIVA ---
+  // Register User
   const register = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      // Paso 1: Crea el usuario. No esperamos token aquí.
-      await axios.post('http://localhost:5000/api/users', formData, config);
-
-      // Paso 2: Si el registro no falló, hacemos login para obtener el token.
-      const res = await axios.post('http://localhost:5000/api/auth', formData, config);
-
-      // Paso 3: Con el token del login, actualizamos el estado.
+      const res = await axios.post('http://localhost:5000/api/users', formData, config);
       dispatch({ type: REGISTER_SUCCESS, payload: res.data });
-      
-      // Paso 4: Cargamos los datos del usuario.
       loadUser();
     } catch (err) {
       dispatch({

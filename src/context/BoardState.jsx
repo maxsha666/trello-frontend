@@ -15,9 +15,6 @@ const BoardState = (props) => {
 
   const [state, dispatch] = useReducer(boardReducer, initialState);
 
-  // --- FUNCIONES ---
-
-  // Get Boards
   const getBoards = async () => {
     try {
       const res = await axios.get('http://localhost:5000/api/boards');
@@ -27,7 +24,6 @@ const BoardState = (props) => {
     }
   };
 
-  // Add Board
   const addBoard = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
@@ -38,7 +34,6 @@ const BoardState = (props) => {
     }
   };
 
-  // Get all data for a single board
   const getBoardData = async (boardId) => {
     try {
       const res = await axios.get(`http://localhost:5000/api/boards/${boardId}`);
@@ -48,7 +43,6 @@ const BoardState = (props) => {
     }
   };
 
-  // Add List
   const addList = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
@@ -59,7 +53,6 @@ const BoardState = (props) => {
     }
   };
 
-  // Add Card
   const addCard = async (formData) => {
     const config = { headers: { 'Content-Type': 'application/json' } };
     try {
@@ -70,7 +63,6 @@ const BoardState = (props) => {
     }
   };
 
-  // Move Card
   const moveCard = async (cardId, newListId) => {
     dispatch({ type: MOVE_CARD, payload: { cardId, newListId } });
     try {

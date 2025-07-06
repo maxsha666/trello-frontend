@@ -9,7 +9,7 @@ const Navbar = () => {
     <Fragment>
       <li>Hello, {user && user.name}</li>
       <li>
-        <a onClick={logout} href="#!">
+        <a onClick={logout} href="/login">
           Logout
         </a>
       </li>
@@ -28,7 +28,7 @@ const Navbar = () => {
       <h1>
         <Link to="/" style={{ color: '#fff', textDecoration: 'none' }}>Trello Clone</Link>
       </h1>
-      <ul style={{ display: 'flex', listStyle: 'none', gap: '1rem' }}>
+      <ul style={{ display: 'flex', listStyle: 'none', gap: '1rem', alignItems: 'center', margin: 0 }}>
         {isAuthenticated ? authLinks : guestLinks}
       </ul>
     </nav>

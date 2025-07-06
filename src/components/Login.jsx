@@ -23,6 +23,8 @@ const Login = () => {
 
   const onSubmit = (e) => {
     e.preventDefault();
+    console.log('--- INICIANDO PRUEBA DE LOGIN ---');
+    console.log('1. Formulario enviado con:', { email, password });
     login({ email, password });
   };
 

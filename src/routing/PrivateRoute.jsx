@@ -5,7 +5,7 @@ import authContext from '../context/authContext';
 const PrivateRoute = () => {
   const { isAuthenticated, loading } = useContext(authContext);
 
-  if (loading) return <p>Loading...</p>; // Or a spinner component
+  if (loading) return <p>Loading...</p>;
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };

@@ -7,9 +7,8 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Si isAuthenticated es true, significa que el login/registro fue exitoso
     if (isAuthenticated) {
-      navigate('/'); // Redirige al usuario a la página principal
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 

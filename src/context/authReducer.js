@@ -1,7 +1,7 @@
 import {
   REGISTER_SUCCESS,
-  REGISTER_FAIL,
   LOGIN_SUCCESS,
+  REGISTER_FAIL,
   LOGIN_FAIL,
   USER_LOADED,
   AUTH_ERROR,
@@ -19,6 +19,8 @@ export default (state, action) => {
       };
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
+      // --- LA LÍNEA MÁS IMPORTANTE Y QUE FALTABA ---
+      // Guarda el token que viene del backend en el almacenamiento local.
       localStorage.setItem('token', action.payload.token);
       return {
         ...state,
@@ -30,6 +32,7 @@ export default (state, action) => {
     case LOGIN_FAIL:
     case AUTH_ERROR:
     case LOGOUT:
+      // Si algo falla o cerramos sesión, lo removemos.
       localStorage.removeItem('token');
       return {
         ...state,

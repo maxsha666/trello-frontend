@@ -1,0 +1,14 @@
+export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
+export const REGISTER_FAIL = 'REGISTER_FAIL';
+export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
+export const LOGIN_FAIL = 'LOGIN_FAIL';
+export const USER_LOADED = 'USER_LOADED';
+export const AUTH_ERROR = 'AUTH_ERROR';
+export const LOGOUT = 'LOGOUT';
+export const GET_BOARDS = 'GET_BOARDS';
+export const ADD_BOARD = 'ADD_BOARD';
+export const BOARD_ERROR = 'BOARD_ERROR';
+export const GET_BOARD_DATA = 'GET_BOARD_DATA';
+export const ADD_LIST = 'ADD_LIST';
+export const ADD_CARD = 'ADD_CARD';
+export const MOVE_CARD = 'MOVE_CARD';

@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import axios from 'axios';
+import api from '../utils/api'; // <-- CAMBIO CLAVE
 import authContext from './authContext';
 import authReducer from './authReducer';
 import setAuthToken from '../utils/setAuthToken';
@@ -24,68 +24,42 @@ const AuthState = (props) => {
 
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Load User
   const loadUser = async () => {
     if (localStorage.token) {
       setAuthToken(localStorage.token);
     }
     try {
-      const res = await axios.get('http://localhost:5000/api/auth');
+      const res = await api.get('/auth'); // <-- USA API
       dispatch({ type: USER_LOADED, payload: res.data });
     } catch (err) {
       dispatch({ type: AUTH_ERROR });
     }
   };
 
-  // Register User
   const register = async (formData) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      const res = await axios.post('http://localhost:5000/api/users', formData, config);
+      const res = await api.post('/users', formData);
       dispatch({ type: REGISTER_SUCCESS, payload: res.data });
       loadUser();
     } catch (err) {
-      dispatch({
-        type: REGISTER_FAIL,
-        payload: err.response.data.msg,
-      });
+      dispatch({ type: REGISTER_FAIL, payload: err.response.data.msg });
     }
   };
 
-  // Login User
   const login = async (formData) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      const res = await axios.post('http://localhost:5000/api/auth', formData, config);
+      const res = await api.post('/auth', formData);
       dispatch({ type: LOGIN_SUCCESS, payload: res.data });
       loadUser();
     } catch (err) {
-      dispatch({
-        type: LOGIN_FAIL,
-        payload: err.response.data.msg,
-      });
+      dispatch({ type: LOGIN_FAIL, payload: err.response.data.msg });
     }
   };
-
-  // Logout
-  const logout = () => {
-    dispatch({ type: LOGOUT });
-  };
+  
+  const logout = () => dispatch({ type: LOGOUT });
 
   return (
-    <authContext.Provider
-      value={{
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
-        loading: state.loading,
-        user: state.user,
-        error: state.error,
-        register,
-        login,
-        loadUser,
-        logout,
-      }}
-    >
+    <authContext.Provider value={{...state, register, login, loadUser, logout }}>
       {props.children}
     </authContext.Provider>
   );

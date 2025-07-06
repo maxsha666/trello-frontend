@@ -9,12 +9,14 @@ import PrivateRoute from './routing/PrivateRoute';
 import authContext from './context/authContext';
 
 const App = () => {
-  const { loadUser } = useContext(authContext);
+  const { loadUser, token } = useContext(authContext);
 
+  // Este useEffect ahora tiene una dependencia: [token]
+  // Se ejecutará una vez al cargar la app Y CADA VEZ que el token cambie.
   useEffect(() => {
     loadUser();
     // eslint-disable-next-line
-  }, []);
+  }, [token]);
 
   return (
     <Fragment>

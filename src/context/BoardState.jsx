@@ -1,12 +1,12 @@
 import React, { useReducer } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import boardContext from './boardContext';
 import boardReducer from './boardReducer';
 import { GET_BOARDS, ADD_BOARD, BOARD_ERROR, GET_BOARD_DATA, ADD_LIST, ADD_CARD, MOVE_CARD } from './types';
 
 const BoardState = (props) => {
   const initialState = {
-    boards: null,
+    boards: [],
     currentBoard: null,
     lists: [],
     cards: [],
@@ -15,58 +15,61 @@ const BoardState = (props) => {
 
   const [state, dispatch] = useReducer(boardReducer, initialState);
 
+  // Get Boards for user
   const getBoards = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/boards');
+      const res = await api.get('/boards');
       dispatch({ type: GET_BOARDS, payload: res.data });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }
   };
 
+  // Add Board
   const addBoard = async (formData) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      const res = await axios.post('http://localhost:5000/api/boards', formData, config);
+      const res = await api.post('/boards', formData);
       dispatch({ type: ADD_BOARD, payload: res.data });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }
   };
-
+  
+  // Get all data for a single board
   const getBoardData = async (boardId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/boards/${boardId}`);
+      const res = await api.get(`/boards/${boardId}`);
       dispatch({ type: GET_BOARD_DATA, payload: res.data });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }
   };
-
+  
+  // Add List
   const addList = async (formData) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      const res = await axios.post('http://localhost:5000/api/lists', formData, config);
+      const res = await api.post('/lists', formData);
       dispatch({ type: ADD_LIST, payload: res.data });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }
   };
-
+  
+  // Add Card
   const addCard = async (formData) => {
-    const config = { headers: { 'Content-Type': 'application/json' } };
     try {
-      const res = await axios.post('http://localhost:5000/api/cards', formData, config);
+      const res = await api.post('/cards', formData);
       dispatch({ type: ADD_CARD, payload: res.data });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }
   };
 
+  // Move Card
   const moveCard = async (cardId, newListId) => {
-    dispatch({ type: MOVE_CARD, payload: { cardId, newListId } });
     try {
-      await axios.put(`http://localhost:5000/api/cards/${cardId}`, { listId: newListId });
+      dispatch({ type: MOVE_CARD, payload: { cardId, newListId } });
+      await api.put(`/cards/${cardId}`, { listId: newListId });
     } catch (err) {
       dispatch({ type: BOARD_ERROR, payload: err.response.data.msg });
     }

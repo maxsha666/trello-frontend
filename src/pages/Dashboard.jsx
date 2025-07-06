@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [boardName, setBoardName] = useState('');
 
   useEffect(() => {
+    console.log('[DASHBOARD] Montado. Llamando a getBoards...');
     getBoards();
     // eslint-disable-next-line
   }, []);
@@ -18,8 +19,20 @@ const Dashboard = () => {
 
   const onSubmit = (e) => {
     e.preventDefault();
+    console.log('--- INICIANDO PRUEBA DE CREAR TABLERO ---');
+    
+    // Verificamos qué es exactamente la función que importamos del contexto
+    console.log('1. Verificando la función `addBoard`...');
+    console.log('   -> typeof addBoard:', typeof addBoard);
+    console.log('   -> Valor de addBoard:', addBoard);
+
     if (boardName.trim() !== '') {
-      addBoard({ name: boardName });
+      if (typeof addBoard === 'function') {
+        console.log('2. `addBoard` es una función. Ejecutando...');
+        addBoard({ name: boardName });
+      } else {
+        console.error('3. ¡ERROR CRÍTICO! `addBoard` NO es una función. Revisa que BoardState.jsx la esté exportando en su `value`.');
+      }
       setBoardName('');
     }
   };

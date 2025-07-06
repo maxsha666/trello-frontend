@@ -2,13 +2,33 @@ import { GET_BOARDS, ADD_BOARD, BOARD_ERROR, GET_BOARD_DATA, ADD_LIST, ADD_CARD,
 
 export default (state, action) => {
   switch (action.type) {
-    // ... (otros casos)
+    case GET_BOARDS:
+      return {
+        ...state,
+        boards: action.payload,
+      };
+    case ADD_BOARD:
+      return {
+        ...state,
+        boards: [action.payload, ...state.boards],
+      };
+    case GET_BOARD_DATA:
+      return {
+        ...state,
+        currentBoard: action.payload.board,
+        lists: action.payload.lists,
+        cards: action.payload.cards,
+      };
+    case ADD_LIST:
+      return {
+        ...state,
+        lists: [...state.lists, action.payload],
+      };
     case ADD_CARD:
       return {
         ...state,
         cards: [...state.cards, action.payload],
       };
-    // NUEVO CASO PARA MOVER LA TARJETA EN EL ESTADO LOCAL
     case MOVE_CARD:
       return {
         ...state,
@@ -16,7 +36,11 @@ export default (state, action) => {
           card._id === action.payload.cardId ? { ...card, list: action.payload.newListId } : card
         ),
       };
-    // ... (el resto de los casos)
+    case BOARD_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+      };
     default:
       return state;
   }

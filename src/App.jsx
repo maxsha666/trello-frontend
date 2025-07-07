@@ -1,38 +1,35 @@
-import React, { useEffect, useContext, Fragment } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Login from './components/Login';
-import Register from './components/Register';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/layout/Navbar'; // Asumo que tienes un Navbar
 import Dashboard from './pages/Dashboard';
 import BoardPage from './pages/BoardPage';
-import PrivateRoute from './routing/PrivateRoute';
-import authContext from './context/authContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-const App = () => {
-  const { loadUser, token } = useContext(authContext);
+import AuthState from './context/auth/AuthState';
+import BoardState from './context/board/BoardState'; // <-- IMPORTAMOS
+import PrivateRoute from './components/routing/PrivateRoute'; // Asumo que tienes una ruta privada
 
-  // Este useEffect ahora tiene una dependencia: [token]
-  // Se ejecutará una vez al cargar la app Y CADA VEZ que el token cambie.
-  useEffect(() => {
-    loadUser();
-    // eslint-disable-next-line
-  }, [token]);
+import './App.css';
 
+function App() {
   return (
-    <Fragment>
-      <Navbar />
-      <div className="container" style={{padding: '0 1rem'}}>
-        <Routes>
-          <Route element={<PrivateRoute />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/board/:boardId" element={<BoardPage />} />
-          </Route>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </div>
-    </Fragment>
+    <AuthState>
+      <BoardState> {/* <-- ENVOLVEMOS LA APP */}
+        <Router>
+          <Navbar />
+          <div className="container">
+            <Routes>
+              <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/board/:boardId" element={<PrivateRoute><BoardPage /></PrivateRoute>} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </div>
+        </Router>
+      </BoardState>
+    </AuthState>
   );
-};
+}
 
 export default App;

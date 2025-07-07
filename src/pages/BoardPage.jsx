@@ -1,102 +1,125 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import boardContext from '../context/boardContext';
-import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import ListColumn from '../components/ListColumn';
-import CardItem from '../components/CardItem';
-
-const AddCardForm = ({ listId }) => {
-  const { addCard } = useContext(boardContext);
-  const [title, setTitle] = useState('');
-  const onChange = (e) => setTitle(e.target.value);
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (title.trim() !== '') {
-      addCard({ title, listId });
-      setTitle('');
-    }
-  };
-
-  return (
-    <form onSubmit={onSubmit} style={{ marginTop: '0.5rem' }}>
-      <input
-        type="text"
-        name="title"
-        value={title}
-        onChange={onChange}
-        placeholder="New Card Title"
-        style={{ width: '90%' }}
-        required
-      />
-      <button type="submit" style={{ width: '90%', marginTop: '0.5rem' }}>Add Card</button>
-    </form>
-  );
-};
+import { DndContext, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import api from '../api';
+import Column from '../components/Column';
 
 const BoardPage = () => {
-  const { currentBoard, lists, cards, getBoardData, addList, moveCard } = useContext(boardContext);
   const { boardId } = useParams();
-  const [listName, setListName] = useState('');
+  const [board, setBoard] = useState(null);
+  const [lists, setLists] = useState([]);
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBoardData = async () => {
+    try {
+      setLoading(true);
+      const boardRes = await api.get(`/api/boards/${boardId}`);
+      const cardsRes = await api.get(`/api/cards/board/${boardId}`);
+      
+      setBoard(boardRes.data.data);
+      setLists(boardRes.data.data.lists || []);
+      setCards(cardsRes.data.data || []);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching board data:", err);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getBoardData(boardId);
-    // eslint-disable-next-line
+    fetchBoardData();
   }, [boardId]);
+
+  const setupTestData = async () => {
+    try {
+      // Create Lists
+      const todoList = await api.post('/api/lists', { title: 'To Do', boardId });
+      const inProgressList = await api.post('/api/lists', { title: 'In Progress', boardId });
+      const doneList = await api.post('/api/lists', { title: 'Done', boardId });
+
+      // Create Cards
+      await api.post('/api/cards', { title: 'Task 1: Setup project', listId: todoList.data._id, boardId });
+      await api.post('/api/cards', { title: 'Task 2: Build UI', listId: todoList.data._id, boardId });
+      await api.post('/api/cards', { title: 'Task 3: Connect to API', listId: inProgressList.data._id, boardId });
+      await api.post('/api/cards', { title: 'Task 4: Debug auth', listId: doneList.data._id, boardId });
+
+      // Refresh data
+      fetchBoardData();
+    } catch (error) {
+      console.error("Failed to set up test data", error);
+    }
+  };
+
+  const getCardsByListId = (listId) => {
+    return cards
+      .filter((card) => card.list === listId)
+      .sort((a, b) => a.position - b.position);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
   
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  const handleDragEnd = (event) => {
-    const { over, active } = event;
-    if (over && active.id !== over.id) {
-      moveCard(active.id, over.id);
+    const activeTask = cards.find(c => c._id === active.id);
+    let overId = over.id;
+    let overIsColumn = over.data.current?.type === 'Column';
+  
+    if (!overIsColumn) {
+      const overTask = cards.find(c => c._id === over.id);
+      overId = overTask.list;
     }
-  };
-
-  const onListNameChange = (e) => setListName(e.target.value);
-
-  const onAddListSubmit = (e) => {
-    e.preventDefault();
-    if (listName.trim() !== '') {
-      addList({ name: listName, boardId: boardId });
-      setListName('');
+  
+    if (activeTask.list !== overId) {
+      // --- Move to a different column ---
+      setCards(prev => prev.map(c => c._id === active.id ? { ...c, list: overId } : c));
     }
+  
+    // --- Reorder within the same or new column ---
+    setCards(prev => {
+      const activeIndex = prev.findIndex(c => c._id === active.id);
+      const overIndex = prev.findIndex(c => c._id === over.id);
+      return arrayMove(prev, activeIndex, overIndex);
+    });
+  
+    // --- Backend Update ---
+    // A slight delay to allow optimistic state to settle before calculating positions
+    setTimeout(async () => {
+      const allLists = [...new Set(cards.map(c => c.list))];
+      const listsToUpdate = [];
+  
+      allLists.forEach(listId => {
+        const cardsInList = cards
+          .filter(c => c.list === listId)
+          .sort((a, b) => a.position - b.position) // This might need adjustment based on final state
+          .map(c => c._id);
+        listsToUpdate.push({ listId, cards: cardsInList });
+      });
+  
+      await api.put('/api/cards/move', { lists: listsToUpdate });
+      fetchBoardData(); // Re-fetch from DB to ensure sync
+    }, 500);
   };
+  
+  if (loading) return <div>Cargando...</div>;
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <h2>{currentBoard && currentBoard.name}</h2>
-      
-      <form onSubmit={onAddListSubmit} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-        <input
-          type="text"
-          name="listName"
-          value={listName}
-          onChange={onListNameChange}
-          placeholder="New List Name"
-          required
-        />
-        <input type="submit" value="Add List" />
-      </form>
-
-      <hr />
-
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', overflowX: 'auto', paddingBottom: '1rem' }}>
-        {lists && lists.length > 0 ? (
-          lists.map((list) => (
-            <ListColumn key={list._id} id={list._id} name={list.name}>
-              {cards && cards
-                .filter((card) => card.list === list._id)
-                .map((card) => (
-                  <CardItem key={card._id} id={card._id} title={card.title} />
-                ))}
-              <AddCardForm listId={list._id} />
-            </ListColumn>
-          ))
-        ) : (
-          <p>This board has no lists yet. Create one!</p>
-        )}
-      </div>
-    </DndContext>
+    <div style={{ padding: '20px' }}>
+      <h1>{board?.title}</h1>
+      <button onClick={setupTestData} style={{ marginBottom: '20px' }}>Setup Test Data</button>
+      <DndContext onDragEnd={handleDragEnd} collisionDetection={closestCorners}>
+        <div style={{ display: 'flex', gap: '20px' }}>
+          {lists.map((list) => (
+            <Column
+              key={list._id}
+              list={list}
+              tasks={getCardsByListId(list._id)}
+            />
+          ))}
+        </div>
+      </DndContext>
+    </div>
   );
 };
 
